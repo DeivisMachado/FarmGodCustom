@@ -8,12 +8,16 @@ window.FarmGod = {};
 const styleEl = document.createElement('style');
 styleEl.textContent = `
   .farm_icon_c {
-    background-image: url(${game_data.image_base}icons/attack.png);
-    width: 20px;
-    height: 20px;
-    display: inline-block;
-    background-size: contain;
-    filter: hue-rotate(200deg); /* Makes it blueish to distinguish */
+    background-image: url(${game_data.image_base}graphic/max_loot/0.webp) !important;
+    width: 20px !important;
+    height: 20px !important;
+    display: inline-block !important;
+    filter: hue-rotate(120deg) brightness(1.2) !important; /* Makes it greenish */
+  }
+  
+  .farmGod_wallTd {
+    font-weight: bold;
+    color: #603000;
   }
 `;
 document.head.appendChild(styleEl);
@@ -1195,7 +1199,7 @@ window.FarmGod.Main = (function (Library, Translation) {
 
             const btn = document.createElement('a');
             btn.href = '#';
-            btn.className = 'farmGod_icon farm_icon farm_icon_b';
+            btn.className = 'farmGod_icon farm_icon farm_icon_c';
             btn.dataset.origin = currVillage;
             btn.dataset.target = target;
             btn.dataset.template = 'custom';
