@@ -135,6 +135,13 @@ window.FarmGod.Main = (function (Library, Translation) {
       if ($.isEmptyObject(data.farms.templates)) {
         let unitSpeeds = lib.getUnitSpeeds();
 
+        // Adiciona template customizado para aldeias com muralha
+        data.farms.templates['custom'] = {
+          id: 'custom',
+          units: [0, 0, 100, 1, 0, 0, 10, 0], // [spear,sword,axe,spy,light,heavy,ram,catapult]
+          speed: unitSpeeds['ram'] // Usa velocidade do aríete como base
+        };
+
         $html
           .find('form[action*="action=edit_all"]')
           .find('input[type="hidden"][name*="template"]')
