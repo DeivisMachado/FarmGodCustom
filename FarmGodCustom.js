@@ -3,6 +3,21 @@
 ScriptAPI.register('FarmGod', true, 'Warre', 'nl.tribalwars@coma.innogames.de');
 
 window.FarmGod = {};
+
+// Add custom styles for FarmGod icons
+const styleEl = document.createElement('style');
+styleEl.textContent = `
+  .farm_icon_c {
+    background-image: url(${game_data.image_base}icons/attack.png);
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    background-size: contain;
+    filter: hue-rotate(200deg); /* Makes it blueish to distinguish */
+  }
+`;
+document.head.appendChild(styleEl);
+
 window.FarmGod.Library = (function () {
   /**** TribalWarsLibrary.js ****/
   if (typeof window.twLib === 'undefined') {
@@ -700,7 +715,7 @@ window.FarmGod.Main = (function (Library, Translation) {
                     <td style="text-align:center;">${val.fields.toFixed(2)}</td>
                     <td style="text-align:center;"><a href="#" data-origin="${val.origin.id
             }" data-target="${val.target.id}" data-template="${val.template.id
-            }" class="farmGod_icon farm_icon farm_icon_${val.template.name
+            }" class="farmGod_icon farm_icon ${val.wallLevel > 0 ? 'farm_icon_c' : 'farm_icon_' + val.template.name
             }" style="margin:auto;"></a></td>
                   </tr>`;
         });
