@@ -397,6 +397,39 @@ window.FarmGod.Translation = (function () {
         sendError: 'Hiba: Farm nemvolt elkÃ¼ldve!',
       },
     },
+    pt_PT: {
+      missingFeatures:
+        'O script requer uma conta premium e o Assistente de Saque!',
+      options: {
+        title: 'Opções do FarmGod',
+        warning:
+          '<b>Atenção:</b><br>- Certifique-se de que o modelo A está definido como microfarm padrão e B como um microfarm maior<br>- Certifique-se de que os filtros de farm estão configurados corretamente antes de usar o script',
+        filterImage:
+          'https://higamy.github.io/TW/Scripts/Assets/farmGodFilters.png',
+        group: 'Enviar farms do grupo:',
+        distance: 'Máximo de campos para farms:',
+        time: 'Quanto tempo em minutos deve haver entre farms:',
+        losses: 'Enviar farm para vilas com perdas parciais:',
+        maxloot: 'Enviar uma farm B se a última pilhagem foi completa:',
+        newbarbs: 'Adicionar novas aldeias bárbaras para farmar:',
+        button: 'Planejar farms',
+      },
+      table: {
+        noFarmsPlanned:
+          'Não é possível enviar farms com as configurações especificadas.',
+        origin: 'Origem',
+        target: 'Alvo',
+        fields: 'Campos',
+        farm: 'Farm',
+        goTo: 'Ir para',
+      },
+      messages: {
+        villageChanged: 'Vila alterada com sucesso!',
+        villageError:
+          'Todas as farms para a vila atual já foram enviadas!',
+        sendError: 'Erro: farm não enviada!',
+      },
+    },
     int: {
       missingFeatures:
         'Script requires a premium account and loot assistent!',
