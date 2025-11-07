@@ -925,21 +925,30 @@ window.FarmGod.Main = (function (Library, Translation) {
         .find('tr[id^="village_"]')
         .map((i, el) => {
           let $el = $(el);
+          let farmData = {
+              id: $el.attr('id').split('_')[1].toNumber(),
+              max_loot: $el.find('img[src*="max_loot/1"]').length > 0,
+          };
 
-          return (data.farms.farms[
+          let colorImg = $el.find('img[src*="graphic/dots/"]');
+          if (colorImg.length > 0) {
+              let match = colorImg.attr('src').match(/dots\/(green|yellow|red|blue|red_blue)/);
+              if (match) {
+                  farmData.color = match[1];
+              }
+          }
+
+          const resTd = $el.find('td span.icon.header.wood').closest('td');
+          const wallTd = resTd.length ? resTd.next() : null;
+          farmData.wallLevel = wallTd && wallTd.length ? parseInt(wallTd.text().replace(/\D/g, '')) || 0 : 0;
+
+          data.farms.farms[
             $el
               .find('a[href*="screen=report&mode=all&view="]')
               .first()
               .text()
               .toCoord()
-          ] = {
-            id: $el.attr('id').split('_')[1].toNumber(),
-            color: $el
-              .find('img[src*="graphic/dots/"]')
-              .attr('src')
-              .match(/dots\/(green|yellow|red|blue|red_blue)/)[1],
-            max_loot: $el.find('img[src*="max_loot/1"]').length > 0,
-          });
+          ] = farmData;
         });
 
       return data;
