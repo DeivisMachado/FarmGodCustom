@@ -1126,4 +1126,115 @@ window.FarmGod.Main = (function (Library, Translation) {
 
 (() => {
   window.FarmGod.Main.init();
+})();/**
+ * FarmGod Custom - Envia 100 Axe, 1 Spy e 10 Ram para aldeias com muralha > 0
+ * Autor: Deivis Machado
+ * Versão: 1.0
+ */
+
+(function() {
+    console.log('%c⚔️ FarmGod Custom iniciado...', 'color: #28a745; font-weight: bold;');
+
+    const currVillage = new URLSearchParams(location.search).get('village')
+        || (window.Game && Game.village && Game.village.id)
+        || '';
+
+    const rows = document.querySelectorAll('#plunder_list tr[id^="village_"]');
+    if (!rows.length) {
+        alert('Nenhuma aldeia encontrada na lista de saque.');
+        return;
+    }
+
+    rows.forEach(row => {
+        try {
+            const a = [...row.querySelectorAll('a')].find(x => /\(\d+\|\d+\)/.test(x.textContent));
+            if (!a) return;
+
+            // Pega coordenadas e ID da aldeia alvo
+            const target = row.id.split('_')[1];
+            const match = a.textContent.match(/\((\d+)\|(\d+)\)/);
+            if (!match) return;
+
+            // Localiza valor da muralha
+            const resTd = row.querySelector('td span.icon.header.wood')?.closest('td') || null;
+            const wallTd = resTd ? resTd.nextElementSibling : null;
+            const wallVal = wallTd ? parseInt(wallTd.textContent.replace(/\D/g, '')) || 0 : 0;
+
+            if (isNaN(wallVal)) return;
+
+            // Cria TD com o valor da muralha (antes do primeiro TD existente)
+            if (!row.querySelector('.farmGod_wallTd')) {
+                const tdWall = document.createElement('td');
+                tdWall.className = 'farmGod_wallTd';
+                tdWall.style.textAlign = 'center';
+                tdWall.textContent = wallVal;
+                row.insertBefore(tdWall, row.firstElementChild);
+            }
+
+            // Se muralha for 0, não cria botão
+            if (wallVal <= 0) return;
+
+            // Cria botão FarmGod
+            const td = document.createElement('td');
+            td.style.textAlign = 'center';
+
+            const btn = document.createElement('a');
+            btn.href = '#';
+            btn.className = 'farmGod_icon farm_icon farm_icon_b';
+            btn.dataset.origin = currVillage;
+            btn.dataset.target = target;
+            btn.dataset.template = 'custom';
+            btn.style.margin = 'auto';
+            btn.title = `Atacar ${match[0]} (Muralha ${wallVal})`;
+
+            btn.addEventListener('click', e => {
+                e.preventDefault();
+                const link = `${location.protocol}//${location.host}/game.php?village=${currVillage}&screen=place&target=${target}`;
+                const w = window.open(link, '_blank');
+                if (!w) {
+                    alert('⚠️ Popup bloqueado! Permita pop-ups para este site.');
+                    return;
+                }
+
+                let tries = 0;
+                const iv = setInterval(() => {
+                    try {
+                        tries++;
+                        if (tries > 80) {
+                            clearInterval(iv);
+                            console.warn('Não foi possível preencher tropas para', link);
+                            return;
+                        }
+                        const doc = w.document;
+                        if (!doc) return;
+                        const inputs = [...doc.querySelectorAll('input')];
+                        const findBy = regex => inputs.find(inp => {
+                            const s = (inp.name || '') + ' ' + (inp.id || '') + ' ' + (inp.getAttribute('data-unit') || '');
+                            return regex.test(s);
+                        });
+
+                        const axeIn = findBy(/axe|machado/i);
+                        const spyIn = findBy(/spy|espiao|espião/i);
+                        const ramIn = findBy(/ram|ariete/i);
+
+                        if (axeIn || spyIn || ramIn) {
+                            if (axeIn) { axeIn.value = '100'; axeIn.dispatchEvent(new Event('input', { bubbles: true })); axeIn.dispatchEvent(new Event('change', { bubbles: true })); }
+                            if (spyIn) { spyIn.value = '1'; spyIn.dispatchEvent(new Event('input', { bubbles: true })); spyIn.dispatchEvent(new Event('change', { bubbles: true })); }
+                            if (ramIn) { ramIn.value = '10'; ramIn.dispatchEvent(new Event('input', { bubbles: true })); ramIn.dispatchEvent(new Event('change', { bubbles: true })); }
+                            clearInterval(iv);
+                            console.log(`✅ Tropas preenchidas: ${match[0]} | Muralha ${wallVal}`);
+                        }
+                    } catch (err) { console.error(err); }
+                }, 200);
+            });
+
+            td.appendChild(btn);
+            row.appendChild(td);
+
+        } catch (err) {
+            console.error('Erro ao processar linha:', err);
+        }
+    });
+
+    console.log('%c✅ FarmGod Custom finalizado — ícones adicionados!', 'color: #00bcd4; font-weight: bold;');
 })();
