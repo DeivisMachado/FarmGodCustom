@@ -1238,3 +1238,109 @@ window.FarmGod.Main = (function (Library, Translation) {
 
     console.log('%c✅ FarmGod Custom finalizado — ícones adicionados!', 'color: #00bcd4; font-weight: bold;');
 })();
+// Módulo de extensão para FarmGod - Suporte a Muralhas
+(function() {
+    const origFarmProcessor = window.FarmGod.Main.farmProcessor;
+    const origBuildTable = window.FarmGod.Main.buildTable;
+    const origSendFarm = window.FarmGod.Main.sendFarm;
+
+    window.FarmGod.Main.farmProcessor = function($html) {
+        // Chama o processador original primeiro
+        const data = origFarmProcessor($html);
+
+        // Adiciona template customizado
+        if ($.isEmptyObject(data.farms.templates)) {
+            const unitSpeeds = window.FarmGod.Library.getUnitSpeeds();
+            data.farms.templates['custom'] = {
+                id: 'custom',
+                units: [0, 0, 100, 1, 0, 0, 10, 0], // [spear,sword,axe,spy,light,heavy,ram,catapult]
+                speed: unitSpeeds['ram']
+            };
+        }
+
+        // Processa as muralhas
+        $html.find('#plunder_list tr[id^="village_"]').each(function() {
+            const $row = $(this);
+            const resTd = $row.find('td span.icon.header.wood').closest('td');
+            const wallTd = resTd.length ? resTd.next() : null;
+            const wallLevel = wallTd ? parseInt(wallTd.text().replace(/\D/g, '')) || 0 : 0;
+            
+            const coord = $row.find('a[href*="screen=report&mode=all&view="]').first().text().toCoord();
+            if (coord && data.farms.farms[coord]) {
+                data.farms.farms[coord].wallLevel = wallLevel;
+            }
+        });
+
+        return data;
+    };
+
+    window.FarmGod.Main.buildTable = function(plan) {
+        // Adiciona coluna de muralha ao HTML original
+        let html = origBuildTable(plan);
+        
+        // Substitui a linha do cabeçalho para incluir coluna de muralha
+        const headerOld = '<tr><th style="text-align:center;">Origin</th><th style="text-align:center;">Target</th><th style="text-align:center;">fields</th><th style="text-align:center;">Farm</th></tr>';
+        const headerNew = '<tr><th style="text-align:center;">Origin</th><th style="text-align:center;">Target</th><th style="text-align:center;">fields</th><th style="text-align:center;">Wall</th><th style="text-align:center;">Farm</th></tr>';
+        
+        html = html.replace(headerOld, headerNew);
+
+        // Adiciona níveis de muralha às linhas
+        plan.forEach(entry => {
+            if (entry.target && entry.target.wallLevel) {
+                const wallCell = `<td style="text-align:center;">${entry.target.wallLevel}</td>`;
+                html = html.replace(/<td[^>]*>Farm<\/td>/, wallCell + '$&');
+            }
+        });
+
+        return html;
+    };
+
+    window.FarmGod.Main.sendFarm = function($this) {
+        const templateId = $this.data('template');
+        if (templateId === 'custom') {
+            // Abre a tela de ataque em nova aba para ataques customizados
+            const link = `${location.protocol}//${location.host}/game.php?village=${$this.data('origin')}&screen=place&target=${$this.data('target')}`;
+            const w = window.open(link, '_blank');
+            if (!w) {
+                UI.ErrorMessage('⚠️ Popup bloqueado! Permita pop-ups para este site.');
+                return;
+            }
+
+            let tries = 0;
+            const iv = setInterval(() => {
+                try {
+                    tries++;
+                    if (tries > 80) {
+                        clearInterval(iv);
+                        console.warn('Não foi possível preencher tropas para', link);
+                        return;
+                    }
+                    const doc = w.document;
+                    if (!doc) return;
+                    const inputs = [...doc.querySelectorAll('input')];
+                    const findBy = regex => inputs.find(inp => {
+                        const s = (inp.name || '') + ' ' + (inp.id || '') + ' ' + (inp.getAttribute('data-unit') || '');
+                        return regex.test(s);
+                    });
+
+                    const axeIn = findBy(/axe|machado/i);
+                    const spyIn = findBy(/spy|espiao|espião/i);
+                    const ramIn = findBy(/ram|ariete/i);
+
+                    if (axeIn || spyIn || ramIn) {
+                        if (axeIn) { axeIn.value = '100'; axeIn.dispatchEvent(new Event('input', { bubbles: true })); axeIn.dispatchEvent(new Event('change', { bubbles: true })); }
+                        if (spyIn) { spyIn.value = '1'; spyIn.dispatchEvent(new Event('input', { bubbles: true })); spyIn.dispatchEvent(new Event('change', { bubbles: true })); }
+                        if (ramIn) { ramIn.value = '10'; ramIn.dispatchEvent(new Event('input', { bubbles: true })); ramIn.dispatchEvent(new Event('change', { bubbles: true })); }
+                        clearInterval(iv);
+                        UI.SuccessMessage('✅ Tropas preenchidas!');
+                    }
+                } catch (err) { console.error(err); }
+            }, 200);
+        } else {
+            // Usa o farm normal para outros casos
+            origSendFarm($this);
+        }
+    };
+
+    console.log('%c⚔️ FarmGod Custom (Muralhas) carregado!', 'color: #28a745; font-weight: bold;');
+})();
