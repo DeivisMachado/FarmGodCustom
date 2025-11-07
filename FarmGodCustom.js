@@ -700,12 +700,12 @@ window.FarmGod.Main = (function (Library, Translation) {
   const buildTable = function (plan) {
     let html = `<div class="vis farmGodContent"><h4>FarmGod</h4><table class="vis" width="100%">
                 <tr><div id="FarmGodProgessbar" class="progress-bar live-progress-bar progress-bar-alive" style="width:98%;margin:5px auto;"><div style="background: rgb(146, 194, 0);"></div><span class="label" style="margin-top:0px;"></span></div></tr>
-                <tr><th style="text-align:center;">${t.table.origin}</th><th style="text-align:center;">${t.table.target}</th><th style="text-align:center;">Muralha</th><th style="text-align:center;">${t.table.fields}</th><th style="text-align:center;">${t.table.farm}</th></tr>`;
+                <tr><th style="text-align:center;">${t.table.origin}</th><th style="text-align:center;">${t.table.target}</th><th style="text-align:center;">${t.table.fields}</th><th style="text-align:center;">Muralha</th></tr>`;
 
     if (!$.isEmptyObject(plan)) {
       for (let prop in plan) {
         if (game_data.market == 'nl') {
-          html += `<tr><td colspan="5" style="background: #e7d098;"><input type="button" class="btn switchVillage" data-id="${plan[prop][0].origin.id}" value="${t.table.goTo} ${plan[prop][0].origin.name} (${plan[prop][0].origin.coord})" style="float:right;"></td></tr>`;
+          html += `<tr><td colspan="4" style="background: #e7d098;"><input type="button" class="btn switchVillage" data-id="${plan[prop][0].origin.id}" value="${t.table.goTo} ${plan[prop][0].origin.name} (${plan[prop][0].origin.coord})" style="float:right;"></td></tr>`;
         }
 
         plan[prop].forEach((val, i) => {
@@ -716,7 +716,6 @@ window.FarmGod.Main = (function (Library, Translation) {
                     <td style="text-align:center;"><a href="${game_data.link_base_pure
             }info_village&id=${val.target.id}">${val.target.coord
             }</a></td>
-                    <td style="text-align:center;" class="wall">${val.wallLevel}</td>
                     <td style="text-align:center;">${val.fields.toFixed(2)}</td>
                     <td style="text-align:center;"><a href="#" data-origin="${val.origin.id
             }" data-target="${val.target.id}" data-template="${val.template.id
@@ -726,7 +725,7 @@ window.FarmGod.Main = (function (Library, Translation) {
         });
       }
     } else {
-      html += `<tr><td colspan="5" style="text-align: center;">${t.table.noFarmsPlanned}</td></tr>`;
+      html += `<tr><td colspan="4" style="text-align: center;">${t.table.noFarmsPlanned}</td></tr>`;
     }
 
     html += `</table></div>`;
@@ -1357,5 +1356,5 @@ window.FarmGod.Main = (function (Library, Translation) {
     }
 
     // aguarda FarmGod carregar
-    setTimeout(initCustomFarmGod, 1500);
+    setTimeout(initCustomFarmGod, 5500);
 })());
