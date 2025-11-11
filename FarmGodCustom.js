@@ -449,6 +449,39 @@ window.FarmGod.Translation = (function () {
         sendError: 'Erro: farm não enviada!',
       },
     },
+    pt_BR: {
+      missingFeatures:
+        'O script requer uma conta premium e o Assistente de Saque!',
+      options: {
+        title: 'Opções do FarmGod',
+        warning:
+          '<b>Atenção:</b><br>- Certifique-se de que o modelo A está definido como farm leve padrão e B como uma farm pesada.<br>- Certifique-se de que os filtros de farm estão configurados corretamente antes de usar o script',
+        filterImage:
+          'https://higamy.github.io/TW/Scripts/Assets/farmGodFilters.png',
+        group: 'Enviar farms do grupo:',
+        distance: 'Distância máxima para farmar:',
+        time: 'Intervalo de tempo (em minutos) entre os envios:',
+        losses: 'Enviar farm para aldeias com perdas parciais:',
+        maxloot: 'Enviar farm pesada se o último ataque foi com carga máxima:',
+        newbarbs: 'Adicionar novas aldeias bárbaras para farmar:',
+        button: 'Agendar farms',
+      },
+      table: {
+        noFarmsPlanned:
+          'Não foi possível agendar farms com as configurações atuais.',
+        origin: 'Origem',
+        target: 'Alvo',
+        fields: 'Distância',
+        farm: 'Farm',
+        goTo: 'Ir para',
+      },
+      messages: {
+        villageChanged: 'Aldeia alterada com sucesso!',
+        villageError:
+          'Todas as farms para a aldeia atual já foram enviadas!',
+        sendError: 'Erro: A farm não foi enviada!',
+      },
+    },
     int: {
       missingFeatures:
         'Script requires a premium account and loot assistent!',
