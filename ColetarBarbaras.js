@@ -1,79 +1,32 @@
+// Variáveis globais para armazenar coordenadas e o índice atual
+let barbCoords = [];
+let currentIndex = 0;
+let spyButton;
+
 $(document).ready(function () {
-    var button = document.createElement('button');
+    // Cria o botão
+    spyButton = document.createElement('button');
+    spyButton.addEventListener("click", sendNextSpy);
+    spyButton.className = "btn btn-instant-free";
+    spyButton.style.textAlign = "center";
 
-    button.addEventListener("click", sendSpiesToBarbs);
-    button.innerText = "Enviar 1 espião para bárbaras";
-    button.style.textAlign = "center";
-    button.className = "btn btn-instant-free";
-
+    // Adiciona o botão à página
     var div = document.createElement('div');
-
     div.style.display = "unset";
     div.style.marginLeft = "10px"
+    div.appendChild(spyButton);
 
-    div.appendChild(button);
+    var content = document.getElementById("content_value");
+    content.insertBefore(div, content.firstChild);
 
-    var continente = document.getElementById("content_value");
-    continente.insertBefore(div, continente.firstChild);
+    // Carrega as coordenadas das bárbaras ao iniciar
+    loadBarbCoords();
 });
 
-function sendSpyTo(targetCoord) {
-    const origin = game_data.village.id;
-    const target = targetCoord;
-    const link = `${location.protocol}//${location.host}/game.php?village=${origin}&screen=place&target=${target}`;
-    
-    const w = window.open(link, '_blank');
-    if (!w) {
-        UI.ErrorMessage('⚠️ Popup bloqueado! Permita pop-ups para este site.');
-        return false; // Stop processing if popups are blocked
-    }
-
-    let tries = 0;
-    const iv = setInterval(() => {
-        try {
-            tries++;
-            if (tries > 80) { // 16 seconds timeout
-                clearInterval(iv);
-                console.warn('Não foi possível preencher tropas para', link);
-                if(!w.closed) w.close();
-                return;
-            }
-            if (w.closed) {
-                clearInterval(iv);
-                return;
-            }
-            
-            const doc = w.document;
-            if (!doc || doc.readyState !== 'complete') return; // Wait for window to load
-
-            const spyInput = doc.querySelector('input[name="spy"]');
-
-            if (spyInput) {
-                spyInput.value = '1';
-                spyInput.dispatchEvent(new Event('input', { bubbles: true }));
-                spyInput.dispatchEvent(new Event('change', { bubbles: true }));
-                clearInterval(iv);
-                console.log(`✅ Tropa (1 espião) preenchida para ${target}`);
-                // Close the window after 1 second
-                setTimeout(() => {
-                    if(!w.closed) w.close();
-                }, 1000);
-            }
-        } catch (err) { 
-            if (err.name !== 'SecurityError') {
-                console.error(err);
-                clearInterval(iv);
-            }
-        }
-    }, 200);
-    return true;
-}
-
-function sendSpiesToBarbs() {
+function loadBarbCoords() {
     let villages = TWMap.villages;
     let vk = TWMap.villageKey;
     let key = {};
-    let barbCoords = [];
     let contador = 0;
 
     for (let j in vk) {
@@ -91,27 +44,93 @@ function sendSpiesToBarbs() {
 
     if (barbCoords.length === 0) {
         UI.InfoMessage("Nenhuma aldeia bárbara encontrada no mapa.");
+        spyButton.innerText = "Nenhuma Bábara";
+        spyButton.disabled = true;
+    } else {
+        UI.InfoMessage(`Encontradas ${barbCoords.length} aldeias bárbaras.`);
+        updateButtonText();
+    }
+}
+
+function updateButtonText() {
+    spyButton.innerText = `Próximo Alvo (${currentIndex}/${barbCoords.length})`;
+}
+
+function sendNextSpy() {
+    if (currentIndex >= barbCoords.length) {
+        UI.SuccessMessage("Todas os alvos foram processados.");
+        spyButton.innerText = "Finalizado";
+        spyButton.disabled = true;
         return;
     }
 
-    UI.InfoMessage(`Encontradas ${barbCoords.length} aldeias bárbaras. Iniciando envio de espiões...`);
-
-    let index = 0;
-    function processNext() {
-        if (index < barbCoords.length) {
-            console.log(`Enviando para ${index + 1}/${barbCoords.length}: ${barbCoords[index]}`);
-            if (sendSpyTo(barbCoords[index])) {
-                index++;
-                // Increase delay to avoid being blocked
-                setTimeout(processNext, 1000); // 1 second delay
-            } else {
-                // Stop if popups are blocked
-                UI.ErrorMessage("Processo interrompido pois os popups estão bloqueados.");
-            }
-        } else {
-            UI.SuccessMessage("Finalizado o envio de espiões para " + barbCoords.length + " aldeias.");
-        }
+    const targetCoord = barbCoords[currentIndex];
+    console.log(`Enviando para ${currentIndex + 1}/${barbCoords.length}: ${targetCoord}`);
+    
+    if (sendSpyTo(targetCoord)) {
+        currentIndex++;
+        updateButtonText();
+    } else {
+        // Para o processo se os popups estiverem bloqueados
+        UI.ErrorMessage("Processo interrompido pois os popups estão bloqueados.");
+        spyButton.innerText = "Popups Bloqueados";
+        spyButton.disabled = true;
     }
 
-    processNext();
+    if (currentIndex >= barbCoords.length) {
+        UI.SuccessMessage("Finalizado o envio de espiões para todas as aldeias.");
+        spyButton.innerText = "Finalizado";
+        spyButton.disabled = true;
+    }
+}
+
+function sendSpyTo(targetCoord) {
+    const origin = game_data.village.id;
+    const link = `${location.protocol}//${location.host}/game.php?village=${origin}&screen=place&target=${targetCoord}`;
+    
+    const w = window.open(link, '_blank');
+    if (!w) {
+        return false; // Indica que o popup foi bloqueado
+    }
+
+    let tries = 0;
+    const iv = setInterval(() => {
+        try {
+            tries++;
+            if (tries > 80) { // Timeout de 16 segundos
+                clearInterval(iv);
+                console.warn('Não foi possível preencher tropas para', link);
+                if(!w.closed) w.close();
+                return;
+            }
+            if (w.closed) {
+                clearInterval(iv);
+                return;
+            }
+            
+            const doc = w.document;
+            if (!doc || doc.readyState !== 'complete') return;
+
+            const spyInput = doc.querySelector('input[name="spy"]');
+
+            if (spyInput) {
+                spyInput.value = '1';
+                spyInput.dispatchEvent(new Event('input', { bubbles: true }));
+                spyInput.dispatchEvent(new Event('change', { bubbles: true }));
+                clearInterval(iv);
+                console.log(`✅ Tropa (1 espião) preenchida para ${targetCoord}`);
+                
+                // Fecha a janela após 1 segundo
+                setTimeout(() => {
+                    if(!w.closed) w.close();
+                }, 1000);
+            }
+        } catch (err) { 
+            if (err.name !== 'SecurityError') {
+                console.error(err);
+                clearInterval(iv);
+            }
+        }
+    }, 200);
+    return true; // Indica sucesso
 }
