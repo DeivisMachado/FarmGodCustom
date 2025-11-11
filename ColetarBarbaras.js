@@ -1,68 +1,89 @@
+// Variáveis globais para armazenar coordenadas e o índice atual
+let barbCoords = [];
+let currentIndex = 0;
+let spyButton;
+
 $(document).ready(function () {
-    // Cria a interface do usuário para os botões de espionagem
-    const mainContainer = document.createElement('div');
-    mainContainer.style.padding = "10px";
-    mainContainer.style.border = "1px solid #c19a6b";
-    mainContainer.style.marginBottom = "10px";
+    // Cria o botão
+    spyButton = document.createElement('button');
+    spyButton.addEventListener("click", sendNextSpy);
+    spyButton.className = "btn btn-instant-free";
+    spyButton.style.textAlign = "center";
 
-    const title = document.createElement('h3');
-    title.innerText = "Espiar Bárbaras (raio de 31 campos)";
-    mainContainer.appendChild(title);
+    // Adiciona o botão à página
+    var div = document.createElement('div');
+    div.style.display = "unset";
+    div.style.marginLeft = "10px"
+    div.appendChild(spyButton);
 
-    const buttonContainer = document.createElement('div');
-    buttonContainer.id = "spy_buttons_container";
-    mainContainer.appendChild(buttonContainer);
-    
-    const content = document.getElementById("content_value");
-    content.insertBefore(mainContainer, content.firstChild);
+    var content = document.getElementById("content_value");
+    content.insertBefore(div, content.firstChild);
 
-    // Carrega as aldeias e cria os botões
-    loadAndCreateSpyButtons();
+    // Carrega as coordenadas das bárbaras ao iniciar
+    loadBarbCoords();
 });
 
-function loadAndCreateSpyButtons() {
-    const buttonContainer = document.getElementById('spy_buttons_container');
-    buttonContainer.innerHTML = ''; // Limpa botões antigos
+function loadBarbCoords() {
+    let villages = TWMap.villages;
+    let vk = TWMap.villageKey;
+    let key = {};
+    let contador = 0;
 
-    const villages = TWMap.villages;
-    const villageKeys = TWMap.villageKey;
-    const currentX = game_data.village.x;
-    const currentY = game_data.village.y;
-    const maxDistance = 31;
-    let foundCount = 0;
+    for (let j in vk) {
+        key[contador] = vk[j];
+        contador++;
+    }
 
-    for (const key of villageKeys) {
-        const village = villages[key];
-        if (village.owner == "0") { // É uma aldeia bárbara
-            const coord = TWMap.CoordByXY(key);
-            const distance = TWMap.context.FATooltip.distance(currentX, currentY, coord[0], coord[1]);
-
-            if (distance <= maxDistance) {
-                foundCount++;
-                const coordString = `${coord[0]}|${coord[1]}`;
-                
-                const button = document.createElement('button');
-                button.innerHTML = `Espiar ${coordString} (<strong>${distance.toFixed(1)}</strong> campos)`;
-                button.className = "btn";
-                button.style.margin = "3px";
-                
-                button.addEventListener('click', function() {
-                    sendSpyTo(coordString);
-                    button.disabled = true;
-                    button.style.backgroundColor = '#a1a1a1';
-                    button.innerHTML = `✔️ Enviado para ${coordString}`;
-                });
-
-                buttonContainer.appendChild(button);
+    for (var k in key) {
+        var village = villages[key[k]];
+        if (village.owner == "0") {
+            var coordAtual = TWMap.CoordByXY(key[k]);
+            var distance = TWMap.context.FATooltip.distance(game_data.village.x, game_data.village.y, coordAtual[0], coordAtual[1]);
+            if(distance <= 31){
+                barbCoords.push(coordAtual[0] + "|" + coordAtual[1]);
             }
         }
     }
 
-    if (foundCount === 0) {
-        buttonContainer.innerHTML = '<p>Nenhuma aldeia bárbara encontrada no raio de 31 campos.</p>';
-        UI.InfoMessage("Nenhuma aldeia bárbara encontrada no raio definido.");
+    if (barbCoords.length === 0) {
+        UI.InfoMessage("Nenhuma aldeia bárbara encontrada no mapa.");
+        spyButton.innerText = "Nenhuma Bábara";
+        spyButton.disabled = true;
     } else {
-        UI.InfoMessage(`Encontradas ${foundCount} aldeias bárbaras para espionar.`);
+        UI.InfoMessage(`Encontradas ${barbCoords.length} aldeias bárbaras.`);
+        updateButtonText();
+    }
+}
+
+function updateButtonText() {
+    spyButton.innerText = `Próximo Alvo (${currentIndex}/${barbCoords.length})`;
+}
+
+function sendNextSpy() {
+    if (currentIndex >= barbCoords.length) {
+        UI.SuccessMessage("Todas os alvos foram processados.");
+        spyButton.innerText = "Finalizado";
+        spyButton.disabled = true;
+        return;
+    }
+
+    const targetCoord = barbCoords[currentIndex];
+    console.log(`Enviando para ${currentIndex + 1}/${barbCoords.length}: ${targetCoord}`);
+    
+    if (sendSpyTo(targetCoord)) {
+        currentIndex++;
+        updateButtonText();
+    } else {
+        // Para o processo se os popups estiverem bloqueados
+        UI.ErrorMessage("Processo interrompido pois os popups estão bloqueados.");
+        spyButton.innerText = "Popups Bloqueados";
+        spyButton.disabled = true;
+    }
+
+    if (currentIndex >= barbCoords.length) {
+        UI.SuccessMessage("Finalizado o envio de espiões para todas as aldeias.");
+        spyButton.innerText = "Finalizado";
+        spyButton.disabled = true;
     }
 }
 
@@ -72,15 +93,14 @@ function sendSpyTo(targetCoord) {
     
     const w = window.open(link, '_blank');
     if (!w) {
-        UI.ErrorMessage("O envio de espião foi interrompido porque o popup foi bloqueado pelo navegador.");
-        return false;
+        return false; // Indica que o popup foi bloqueado
     }
 
     let tries = 0;
     const iv = setInterval(() => {
         try {
             tries++;
-            if (tries > 80) { // Timeout de ~16 segundos
+            if (tries > 80) { // Timeout de 16 segundos
                 clearInterval(iv);
                 console.warn('Não foi possível preencher tropas para', link);
                 return;
@@ -115,5 +135,5 @@ function sendSpyTo(targetCoord) {
             }
         }
     }, 200);
-    return true;
+    return true; // Indica sucesso
 }
