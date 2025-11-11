@@ -100,7 +100,6 @@ function sendSpyTo(targetCoord) {
             if (tries > 80) { // Timeout de 16 segundos
                 clearInterval(iv);
                 console.warn('Não foi possível preencher tropas para', link);
-                if(!w.closed) w.close();
                 return;
             }
             if (w.closed) {
@@ -111,19 +110,20 @@ function sendSpyTo(targetCoord) {
             const doc = w.document;
             if (!doc || doc.readyState !== 'complete') return;
 
-            const spyInput = doc.querySelector('input[name="spy"]');
+            const inputs = [...doc.querySelectorAll('input')];
+            const findBy = regex => inputs.find(inp => {
+                const s = (inp.name || '') + ' ' + (inp.id || '') + ' ' + (inp.getAttribute('data-unit') || '');
+                return regex.test(s);
+            });
 
-            if (spyInput) {
-                spyInput.value = '1';
-                spyInput.dispatchEvent(new Event('input', { bubbles: true }));
-                spyInput.dispatchEvent(new Event('change', { bubbles: true }));
+            const spyIn = findBy(/spy|espiao|espião/i);
+
+            if (spyIn) {
+                spyIn.value = '1';
+                spyIn.dispatchEvent(new Event('input', { bubbles: true }));
+                spyIn.dispatchEvent(new Event('change', { bubbles: true }));
                 clearInterval(iv);
                 console.log(`✅ Tropa (1 espião) preenchida para ${targetCoord}`);
-                
-                // Fecha a janela após 1 segundo
-                setTimeout(() => {
-                    if(!w.closed) w.close();
-                }, 1000);
             }
         } catch (err) { 
             if (err.name !== 'SecurityError') {
