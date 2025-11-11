@@ -41,7 +41,7 @@ function loadBarbCoords() {
             const distance = TWMap.context.FATooltip.distance(game_data.village.x, game_data.village.y, coordAtual[0], coordAtual[1]);
             console.log(`Aldeia Bárbara em ${coordAtual[0]}|${coordAtual[1]} está a ${distance.toFixed(2)} de distância.`);
             if (distance <= 31) {
-                barbCoords.push({ id: village.id, coord: `${coordAtual[0]}|${coordAtual[1]}` });
+                barbCoords.push(`${village}`);
             }
         }
     }
@@ -68,10 +68,10 @@ function sendNextSpy() {
         return;
     }
 
-    const target = barbCoords[currentIndex];
-    console.log(`Enviando para ${currentIndex + 1}/${barbCoords.length}: ${target.coord}`);
+    const targetCoord = barbCoords[currentIndex];
+    console.log(`Enviando para ${currentIndex + 1}/${barbCoords.length}: ${targetCoord}`);
     
-    if (sendSpyTo(target.id, target.coord)) {
+    if (sendSpyTo(targetCoord)) {
         currentIndex++;
         updateButtonText();
     } else {
@@ -88,9 +88,9 @@ function sendNextSpy() {
     }
 }
 
-function sendSpyTo(targetId, targetCoord) {
+function sendSpyTo(targetCoord) {
     const origin = game_data.village.id;
-    const link = `${location.protocol}//${location.host}/game.php?village=${origin}&screen=place&target=${targetId}`;
+    const link = `${location.protocol}//${location.host}/game.php?village=${origin}&screen=place&target=${targetCoord}`;
     
     const w = window.open(link, '_blank');
     if (!w) {
