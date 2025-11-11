@@ -39,7 +39,7 @@ function loadBarbCoords() {
         if (village.owner === "0") {
             const coordAtual = TWMap.CoordByXY(key[k]);
             const distance = TWMap.context.FATooltip.distance(game_data.village.x, game_data.village.y, coordAtual[0], coordAtual[1]);
-
+            console.log(`Aldeia Bárbara em ${coordAtual[0]}|${coordAtual[1]} está a ${distance.toFixed(2)} de distância.`);
             if (distance <= 31) {
                 barbCoords.push(`${coordAtual[0]}|${coordAtual[1]}`);
             }
