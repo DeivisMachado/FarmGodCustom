@@ -34,13 +34,14 @@ function loadBarbCoords() {
         contador++;
     }
 
-    for (var k in key) {
-        var village = villages[key[k]];
-        if (village.owner == "0") {
-            var coordAtual = TWMap.CoordByXY(key[k]);
-            var distance = TWMap.context.FATooltip.distance(game_data.village.x, game_data.village.y, coordAtual[0], coordAtual[1]);
-            if(distance <= 31){
-                barbCoords.push(coordAtual[0] + "|" + coordAtual[1]);
+    for (const k in key) {
+        const village = villages[key[k]];
+        if (village.owner === "0") {
+            const coordAtual = TWMap.CoordByXY(key[k]);
+            const distance = TWMap.context.FATooltip.distance(game_data.village.x, game_data.village.y, coordAtual[0], coordAtual[1]);
+
+            if (distance <= 31) {
+                barbCoords.push(`${coordAtual[0]}|${coordAtual[1]}`);
             }
         }
     }
