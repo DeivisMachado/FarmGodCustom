@@ -24,45 +24,34 @@ $(document).ready(function () {
 });
 
 function loadBarbCoords() {
-    const villages = TWMap.villages;
-    const villageKeys = TWMap.villageKey; // This is an array of xy-strings
-    const currentX = game_data.village.x;
-    const currentY = game_data.village.y;
-    const maxFields = 31;
+    let villages = TWMap.villages;
+    let vk = TWMap.villageKey;
+    let key = {};
+    let contador = 0;
 
-    barbCoords = []; // Reset the array
+    for (let j in vk) {
+        key[contador] = vk[j];
+        contador++;
+    }
 
-    for (const xy of villageKeys) {
-        const village = villages[xy];
-        if (village.owner === "0") { // Check if it's a barbarian village
-            const coordAtual = TWMap.CoordByXY(xy); // Returns [x, y] as strings
-            const targetX = parseInt(coordAtual[0], 10);
-            const targetY = parseInt(coordAtual[1], 10);
-
-            const distance = TWMap.context.FATooltip.distance(currentX, currentY, targetX, targetY);
-            console.log(`Aldeia Bárbara em ${targetX}|${targetY} está a ${distance.toFixed(2)} de distância.`);
-
-            if (distance <= maxFields) {
-                barbCoords.push(`${targetX}|${targetY}`);
+    for (const k in key) {
+        const village = villages[key[k]];
+        if (village.owner === "0") {
+            const coordAtual = TWMap.CoordByXY(key[k]);
+            const distance = TWMap.context.FATooltip.distance(game_data.village.x, game_data.village.y, coordAtual[0], coordAtual[1]);
+            console.log(`Aldeia Bárbara em ${coordAtual[0]}|${coordAtual[1]} está a ${distance.toFixed(2)} de distância.`);
+            if (distance <= 31) {
+                barbCoords.push({ id: village.id, coord: `${coordAtual[0]}|${coordAtual[1]}` });
             }
         }
     }
 
     if (barbCoords.length === 0) {
-        UI.InfoMessage("Nenhuma aldeia bárbara encontrada no raio de 31 campos.");
+        UI.InfoMessage("Nenhuma aldeia bárbara encontrada no mapa.");
         spyButton.innerText = "Nenhuma Bábara";
         spyButton.disabled = true;
     } else {
-        UI.InfoMessage(`Encontradas ${barbCoords.length} aldeias bárbaras no raio de 31 campos.`);
-        // Sort by distance, closest first
-        barbCoords.sort((a, b) => {
-            const coordA = a.split('|');
-            const coordB = b.split('|');
-            const distA = TWMap.context.FATooltip.distance(currentX, currentY, parseInt(coordA[0], 10), parseInt(coordA[1], 10));
-            const distB = TWMap.context.FATooltip.distance(currentX, currentY, parseInt(coordB[0], 10), parseInt(coordB[1], 10));
-            return distA - distB;
-        });
-        currentIndex = 0; // Reset index
+        UI.InfoMessage(`Encontradas ${barbCoords.length} aldeias bárbaras.`);
         updateButtonText();
     }
 }
@@ -79,10 +68,10 @@ function sendNextSpy() {
         return;
     }
 
-    const targetCoord = barbCoords[currentIndex];
-    console.log(`Enviando para ${currentIndex + 1}/${barbCoords.length}: ${targetCoord}`);
+    const target = barbCoords[currentIndex];
+    console.log(`Enviando para ${currentIndex + 1}/${barbCoords.length}: ${target.coord}`);
     
-    if (sendSpyTo(targetCoord)) {
+    if (sendSpyTo(target.id, target.coord)) {
         currentIndex++;
         updateButtonText();
     } else {
@@ -99,10 +88,9 @@ function sendNextSpy() {
     }
 }
 
-function sendSpyTo(targetCoord) {
+function sendSpyTo(targetId, targetCoord) {
     const origin = game_data.village.id;
-    const link = `${location.protocol}//${location.host}/game.php?village=${origin}&screen=place&target=${targetCoord}`;
-    console.log('Abrindo link de envio de espião para', targetCoord);
+    const link = `${location.protocol}//${location.host}/game.php?village=${origin}&screen=place&target=${targetId}`;
     
     const w = window.open(link, '_blank');
     if (!w) {
