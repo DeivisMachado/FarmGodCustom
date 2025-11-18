@@ -11,9 +11,9 @@
 
         // Detecta 1s (várias formas, dependendo do formato do contador)
         const isOneSecond =
-            text === "1" ||
-            text === "1s" ||
-            text.includes("1 second") ||
+            text === " 1" ||
+            text === " 1 s" ||
+            text.includes(" 1 second") ||
             text.endsWith(":01") ||
             text.match(/(^1\b| 1\b)/);
 
