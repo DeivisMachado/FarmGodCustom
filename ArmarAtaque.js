@@ -7,45 +7,54 @@
         const span = document.querySelector("#remainingTime");
         if (!span) return;
 
-        const text = span.textContent.trim();
+        const raw = span.textContent.trim();
 
-        // Detecta 1s (várias formas, dependendo do formato do contador)
+        // Remove coisas como "seconds", "s", "sec", etc.
+        const cleaned = raw
+            .toLowerCase()
+            .replace(/seconds?/g, "")
+            .replace(/secs?/g, "")
+            .replace(/s/g, "")
+            .replace(/[^\d:\-]/g, "")  // remove letras e símbolos
+            .trim();
+
+        // FORMAS ACEITAS como 1 segundo:
         const isOneSecond =
-            text === " 1" ||
-            text === " 1 s" ||
-            text.includes(" 1 second") ||
-            text.endsWith(":01") ||
-            text.match(/(^1\b| 1\b)/);
+            cleaned === "1" ||        // apenas 1
+            cleaned === "01" ||       // 01
+            cleaned === "0:01" ||     // 0:01
+            cleaned === "00:01" ||    // 00:01
+            /^0+:0*1$/.test(cleaned); // qualquer combinação tipo 000:001
 
         if (isOneSecond && !alreadyTriggered) {
 
-            alreadyTriggered = true; // impede múltiplos cliques
+            alreadyTriggered = true;
 
-            console.log("🔥 1 segundo detectado — aguardando 100ms…");
+            console.log("🔥 Valor EXATO de 1 segundo detectado:", raw);
 
             setTimeout(() => {
 
                 const btn =
-                    document.querySelector("#troop_confirm_submit") ||     // confirmação
-                    document.querySelector("input[type='submit'][value*='Atacar']") || // ataque
+                    document.querySelector("#troop_confirm_submit") ||
+                    document.querySelector("input[type='submit'][value*='Atacar']") ||
                     document.querySelector("button.btn-attack");
 
                 if (btn) {
                     console.log("⚔ Enviando ataque automaticamente!");
                     btn.click();
                 } else {
-                    console.log("❌ Nenhum botão para enviar ataque encontrado.");
+                    console.log("❌ Nenhum botão de ataque encontrado.");
                 }
 
             }, 100);
         }
 
-        // Opcional: quando fica negativo, pode resetar
-        if (text.includes('-')) {
+        // Se houver tempo negativo, pode liberar novamente
+        if (raw.includes('-')) {
             alreadyTriggered = false;
         }
     }
 
-    setInterval(checkRemainingTime, 50); // alta precisão
+    setInterval(checkRemainingTime, 50);
 
 })();
